@@ -1,6 +1,4 @@
 # Change the default theme to be use when building the site with Hugo
-baseURL = "https://iamphanan13.github.io/"
-title = AWS FCJ WS1
 theme = "hugo-theme-learn"
 
 # For search functionality
