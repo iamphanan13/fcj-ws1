@@ -1,118 +1,118 @@
 [
 {
-	"uri": "/",
+	"uri": "//localhost:1313/",
 	"title": "Session Management",
 	"tags": [],
 	"description": "",
 	"content": "Create and deploy 3-tier architecture on AWS Overall In this lab, we will learn the basic and practice about how to create 3-tier application on AWS with VPC, EC2 and RDS. Testing connection between all subnets on it.\n"
 },
 {
-	"uri": "/2-prerequiste/2.1-createec2/2.1.1-createvpc/",
+	"uri": "//localhost:1313/2-prerequiste/2.1-createec2/2.1.1-createvpc/",
 	"title": "Create VPC",
 	"tags": [],
 	"description": "",
 	"content": "Create VPC Lab VPC Create a vpc.tf with configuration below:\nresource \u0026#34;aws_vpc\u0026#34; \u0026#34;three-tier-vpc\u0026#34; {\rcidr_block = \u0026#34;10.0.0.0/16\u0026#34;\rtags = {\rName = \u0026#34;3-tier-vpc\u0026#34;\r}\r}\rresource \u0026#34;aws_internet_gateway\u0026#34; \u0026#34;three-tier-igw\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rtags = {\rName = \u0026#34;3-tier-igw\u0026#34;\r}\r}\rresource \u0026#34;aws_eip\u0026#34; \u0026#34;three-tier-eip\u0026#34; {\r}\rresource \u0026#34;aws_nat_gateway\u0026#34; \u0026#34;three-tier-ngw-01\u0026#34; {\rallocation_id = aws_eip.three-tier-eip.id\rsubnet_id = aws_subnet.public-subnet-01.id\rtags = {\rName = \u0026#34;three-tier-ngw-01\u0026#34;\r}\rdepends_on = [aws_internet_gateway.three-tier-igw]\r} "
 },
 {
-	"uri": "/3-accessibilitytoinstances/3.1-web-tier/",
+	"uri": "//localhost:1313/3-accessibilitytoinstances/3.1-web-tier/",
 	"title": "For Web tier",
 	"tags": [],
 	"description": "",
 	"content": "The Web Tier, also known as the ‘Presentation’ tier, is the environment where our application will be delivered for users to interact with. Here\u0026rsquo;s an architecture:\nCreate new file called instance.tf and insert configuration below:\n# ASG for web tier\rresource \u0026#34;aws_autoscaling_group\u0026#34; \u0026#34;three-tier-web-asg\u0026#34; {\rname = \u0026#34;three-tier-web-asg\u0026#34;\rlaunch_configuration = aws_launch_configuration.three-tier-web-lconfig.id\rvpc_zone_identifier = [aws_subnet.public-subnet-01.id, aws_subnet.public-subnet-02.id]\rmin_size = 2\rmax_size = 5\rdesired_capacity = 2\r}\r# Launch configuration for the web tier\rresource \u0026#34;aws_launch_configuration\u0026#34; \u0026#34;three-tier-web-lconfig\u0026#34; {\rname_prefix = \u0026#34;three-tier-web-lconfig\u0026#34;\rimage_id = \u0026#34;ami-018b3a33b9795691a\u0026#34;\rinstance_type = \u0026#34;t2.micro\u0026#34;\rkey_name = \u0026#34;3-tier-lab\u0026#34;\rsecurity_groups = [aws_security_group.three-tier-ec2-asg-sg.id]\ruser_data = \u0026lt;\u0026lt;-EOF\r#!/bin/bash\ryum install httpd -y\rservice httpd start\rchconfig httpd on\rcd /var/www/html\recho \u0026#34;\u0026lt;html\u0026gt;\u0026#34; \u0026gt; index.html\recho \u0026#34;\u0026lt;h1\u0026gt;Welcome to 3 tier\u0026lt;/h1\u0026gt;\u0026#34; \u0026gt;\u0026gt; index.html\recho \u0026#34;\u0026lt;h4\u0026gt;You are running instance from this IP (For debug only!!!!Do not public this to user):\u0026lt;/h4\u0026gt;\u0026#34; \u0026gt;\u0026gt; index.html\rexport TOKEN=`curl -X PUT \u0026#34;http://169.254.169.254/latest/api/token\u0026#34; -H \u0026#34;X-aws-ec2-metadata-token-ttl-seconds: 21600\u0026#34;`\recho \u0026#34;\u0026lt;br\u0026gt;Private IP: \u0026#34; \u0026gt;\u0026gt; index.html\rcurl -H \u0026#34;X-aws-ec2-metadata-token: $TOKEN\u0026#34; -v http://169.254.169.254/latest/meta-data/local-ipv4 \u0026gt;\u0026gt; index.html\recho \u0026#34;\u0026lt;br\u0026gt;Public IP: \u0026#34; \u0026gt;\u0026gt; index.html\rcurl -H \u0026#34;X-aws-ec2-metadata-token: $TOKEN\u0026#34; -v http://169.254.169.254/latest/meta-data/public-ipv4 \u0026gt;\u0026gt; index.html echo \u0026#34;\u0026lt;/html\u0026gt;\u0026#34; \u0026gt;\u0026gt; index.html\rEOF\rassociate_public_ip_address = true\rlifecycle {\r# prevent_destroy = true\r# ignore_changes = all\r}\r} and create new file called loadbalancer.tf and insert configuration below\n# Load balancer - web tier\rresource \u0026#34;aws_lb\u0026#34; \u0026#34;three-tier-web-lb\u0026#34; {\rname = \u0026#34;three-tier-web-lb\u0026#34;\rinternal = false\rload_balancer_type = \u0026#34;application\u0026#34;\rsecurity_groups = [aws_security_group.three-tier-alb-sg-1.id]\rsubnets = [aws_subnet.public-subnet-01.id, aws_subnet.public-subnet-02.id]\rtags = {\renvironment = \u0026#34;three-tier-web-lb\u0026#34;\r}\r}\r# create load balancer target group - web tier\rresource \u0026#34;aws_lb_target_group\u0026#34; \u0026#34;three-tier-web-lb-tg\u0026#34; {\rname = \u0026#34;three-tier-web-lb-tg\u0026#34;\rport = 80\rprotocol = \u0026#34;HTTP\u0026#34;\rvpc_id = aws_vpc.three-tier-vpc.id\rhealth_check {\rinterval = 30\rpath = \u0026#34;/\u0026#34;\rport = \u0026#34;traffic-port\u0026#34;\rprotocol = \u0026#34;HTTP\u0026#34;\rtimeout = 10\rhealthy_threshold = 3\runhealthy_threshold = 3\r}\r}\r# Create load balancer listener - web tier\rresource \u0026#34;aws_lb_listener\u0026#34; \u0026#34;three-tier-web-lb-listener\u0026#34; {\rload_balancer_arn = aws_lb.three-tier-web-lb.arn\rport = 80\rprotocol = \u0026#34;HTTP\u0026#34;\rdefault_action {\rtype = \u0026#34;forward\u0026#34;\rtarget_group_arn = aws_lb_target_group.three-tier-web-lb-tg.arn\r}\r}\rresource \u0026#34;aws_autoscaling_attachment\u0026#34; \u0026#34;three-tier-web-attach\u0026#34; {\rautoscaling_group_name = aws_autoscaling_group.three-tier-web-asg.name\rlb_target_group_arn = aws_lb_target_group.three-tier-web-lb-tg.arn\r} "
 },
 {
-	"uri": "/1-introduce/",
+	"uri": "//localhost:1313/1-introduce/",
 	"title": "Introduction",
 	"tags": [],
 	"description": "",
 	"content": "What is 3-tier architecture in simple terms\nThe presentation tier is the user interface, this is where results are translated into something the user can understand. The application tier is where data is processed. The application tier is also called the logic tier because it performs calculations and makes logical decisions. The data tier is where the information that was being processed in the application tier is being stored and data can be retrieved from this tier, passed back to the application tier and eventually back to the user. Three-tier architecture can provide improved scalability, reliability, and security.\nIn this lab, we will going to create:\nVPC 6 subnets: 2 public subnets and 4 private subnets 4 EC2 Instances with Amazon Linux 2 2 RDS Instances with MySQL Secuirty groups "
 },
 {
-	"uri": "/2-prerequiste/2.1-createec2/",
+	"uri": "//localhost:1313/2-prerequiste/2.1-createec2/",
 	"title": "Preparing VPC and EC2",
 	"tags": [],
 	"description": "",
 	"content": "In this step, we will need to create a VPC with 6 subnets with 4 public subnets for web tier (2 subnets), application layer (2 subnets) and 2 private subnets for database (RDS).\n"
 },
 {
-	"uri": "/2-prerequiste/2.1-createec2/2.1.2-createpublicsubnet/",
+	"uri": "//localhost:1313/2-prerequiste/2.1-createec2/2.1.2-createpublicsubnet/",
 	"title": "Create Public and Private Subnet",
 	"tags": [],
 	"description": "",
 	"content": "Create Public and Private Subnet Create a subnet.tf with configuration below:\nresource \u0026#34;aws_subnet\u0026#34; \u0026#34;public-subnet-01\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rcidr_block = \u0026#34;10.0.1.0/24\u0026#34;\ravailability_zone = \u0026#34;ap-southeast-1a\u0026#34;\rmap_public_ip_on_launch = true\rtags = {\rName = \u0026#34;public-subnet-01\u0026#34;\r}\r}\rresource \u0026#34;aws_subnet\u0026#34; \u0026#34;public-subnet-02\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rcidr_block = \u0026#34;10.0.2.0/24\u0026#34;\ravailability_zone = \u0026#34;ap-southeast-1b\u0026#34;\rmap_public_ip_on_launch = true\rtags = {\rName = \u0026#34;public-subnet-02\u0026#34;\r}\r}\rresource \u0026#34;aws_subnet\u0026#34; \u0026#34;private-subnet-01\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\ravailability_zone = \u0026#34;ap-southeast-1a\u0026#34;\rcidr_block = \u0026#34;10.0.3.0/24\u0026#34;\rtags = {\rName = \u0026#34;private-subnet-01\u0026#34;\r}\r}\rresource \u0026#34;aws_subnet\u0026#34; \u0026#34;private-subnet-02\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rcidr_block = \u0026#34;10.0.4.0/24\u0026#34;\ravailability_zone = \u0026#34;ap-southeast-1b\u0026#34;\rtags = {\rName = \u0026#34;private-subnet-02\u0026#34;\r}\r}\rresource \u0026#34;aws_subnet\u0026#34; \u0026#34;private-subnet-03\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rcidr_block = \u0026#34;10.0.5.0/24\u0026#34;\ravailability_zone = \u0026#34;ap-southeast-1a\u0026#34;\rtags = {\rName = \u0026#34;private-subnet-03\u0026#34;\r}\r}\rresource \u0026#34;aws_subnet\u0026#34; \u0026#34;private-subnet-04\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rcidr_block = \u0026#34;10.0.6.0/24\u0026#34;\ravailability_zone = \u0026#34;ap-southeast-1b\u0026#34;\rtags = {\rName = \u0026#34;private-subnet-04\u0026#34;\r}\r} We have 6 subnets with 2 public subnets and 4 private subnets\nPublic subnet 1 (CIDR: 10.0.1.0/24) Public subnet 2 (CIDR: 10.0.2.0/24) Private subnet 3 (CIDR: 10.0.3.0/24) Private subnet 4 (CIDR: 10.0.4.0/24) Private subnet 5 (CIDR: 10.0.5.0/24) Private subnet 6 (CIDR: 10.0.6.0/24) "
 },
 {
-	"uri": "/3-accessibilitytoinstances/3.2-app-tier/",
+	"uri": "//localhost:1313/3-accessibilitytoinstances/3.2-app-tier/",
 	"title": "For App tier",
 	"tags": [],
 	"description": "",
 	"content": "The Application Tier is where the core functionality of our application app resides, handling tasks such as processing requests and data storage. To ensure the reliability and scalability of our application, we will implement a similar architecture as the Web Tier, but with some additional components.\nopen instance.tf and insert configuration below:\n# ASG for app tier\rresource \u0026#34;aws_autoscaling_group\u0026#34; \u0026#34;three-tier-app-asg\u0026#34; {\rname = \u0026#34;three-tier-app-asg\u0026#34;\rlaunch_configuration = aws_launch_configuration.three-tier-app-lconfig.id\rvpc_zone_identifier = [aws_subnet.private-subnet-01.id, aws_subnet.private-subnet-02.id]\rmin_size = 2\rmax_size = 5\rdesired_capacity = 2\r}\r# Launch configuration for the app tier\rresource \u0026#34;aws_launch_configuration\u0026#34; \u0026#34;three-tier-app-lconfig\u0026#34; {\rname_prefix = \u0026#34;three-tier-app-lconfig\u0026#34;\rimage_id = \u0026#34;ami-018b3a33b9795691a\u0026#34;\rinstance_type = \u0026#34;t2.micro\u0026#34;\rkey_name = \u0026#34;3-tier-lab\u0026#34;\rsecurity_groups = [aws_security_group.three-tier-ec2-asg-sg-app.id]\ruser_data = \u0026lt;\u0026lt;-EOF\r#!/bin/bash\rsudo yum install mysql -y\rEOF\rassociate_public_ip_address = false\rlifecycle {\r# prevent_destroy = true\r# ignore_changes = all\r}\r} open loadbalancer.tf and insert configuration below\n# Load balancer - app tier\rresource \u0026#34;aws_lb\u0026#34; \u0026#34;three-tier-app-lb\u0026#34; {\rname = \u0026#34;three-tier-app-lb\u0026#34;\rinternal = true\rload_balancer_type = \u0026#34;application\u0026#34;\rsecurity_groups = [aws_security_group.three-tier-alb-sg-2.id]\rsubnets = [aws_subnet.private-subnet-01.id, aws_subnet.private-subnet-02.id]\rtags = {\renvironment = \u0026#34;three-tier-app-lb\u0026#34;\r}\r}\r# create load balancer target group - app tier\rresource \u0026#34;aws_lb_target_group\u0026#34; \u0026#34;three-tier-app-lb-tg\u0026#34; {\rname = \u0026#34;three-tier-app-lb-tg\u0026#34;\rport = 80\rprotocol = \u0026#34;HTTP\u0026#34;\rvpc_id = aws_vpc.three-tier-vpc.id\rhealth_check {\rinterval = 30\rpath = \u0026#34;/\u0026#34;\rport = \u0026#34;traffic-port\u0026#34;\rprotocol = \u0026#34;HTTP\u0026#34;\rtimeout = 10\rhealthy_threshold = 3\runhealthy_threshold = 3\r}\r}\r# Create load balancer listener - app tier\rresource \u0026#34;aws_lb_listener\u0026#34; \u0026#34;three-tier-app-lb-listner\u0026#34; {\rload_balancer_arn = aws_lb.three-tier-app-lb.arn\rport = \u0026#34;80\u0026#34;\rprotocol = \u0026#34;HTTP\u0026#34;\rdefault_action {\rtype = \u0026#34;forward\u0026#34;\rtarget_group_arn = aws_lb_target_group.three-tier-app-lb-tg.arn\r}\r}\rresource \u0026#34;aws_autoscaling_attachment\u0026#34; \u0026#34;three-tier-app-attach\u0026#34; {\rautoscaling_group_name = aws_autoscaling_group.three-tier-app-asg.name\rlb_target_group_arn = aws_lb_target_group.three-tier-app-lb-tg.arn\r} "
 },
 {
-	"uri": "/2-prerequiste/",
+	"uri": "//localhost:1313/2-prerequiste/",
 	"title": "Preparation ",
 	"tags": [],
 	"description": "",
 	"content": "\rYou need to install Terraform, AWS CLI and already set-up credentials before doing this workshop\nWe will going to create required components such as VPC, IGW, NAT, Subnets, etc. Then, let\u0026rsquo;s set up the VPC.\n"
 },
 {
-	"uri": "/3-accessibilitytoinstances/",
+	"uri": "//localhost:1313/3-accessibilitytoinstances/",
 	"title": "Create Auto Scaling Group, Launch Template and Load Balancer",
 	"tags": [],
 	"description": "",
 	"content": "In this step, we will connect to our EC2 servers, located in both the public and private subnets.\nContent 3.1. Web tier 3.2. App tier 3.3. Database tier 3.4. Execute\n"
 },
 {
-	"uri": "/2-prerequiste/2.1-createec2/2.1.3-routetable/",
+	"uri": "//localhost:1313/2-prerequiste/2.1-createec2/2.1.3-routetable/",
 	"title": "Create Route Table and Subnet Association",
 	"tags": [],
 	"description": "",
 	"content": "Create Route Table and Subnet Association Create a routetable.tf with configuration below:\nresource \u0026#34;aws_route_table\u0026#34; \u0026#34;three-tier-web-rt\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rtags = {\rName = \u0026#34;three-tier-web-rt\u0026#34;\r}\rroute {\rcidr_block = \u0026#34;0.0.0.0/0\u0026#34;\rgateway_id = aws_internet_gateway.three-tier-igw.id\r}\r}\rresource \u0026#34;aws_route_table\u0026#34; \u0026#34;three-tier-app-rt\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rtags = {\rName = \u0026#34;three-tier-app-rt\u0026#34;\r}\rroute {\rcidr_block = \u0026#34;0.0.0.0/0\u0026#34;\rgateway_id = aws_nat_gateway.three-tier-ngw-01.id\r}\r}\rresource \u0026#34;aws_route_table_association\u0026#34; \u0026#34;three-tier-rta-01\u0026#34; {\rsubnet_id = aws_subnet.public-subnet-01.id\rroute_table_id = aws_route_table.three-tier-web-rt.id\r}\rresource \u0026#34;aws_route_table_association\u0026#34; \u0026#34;three-tier-rta-02\u0026#34; {\rsubnet_id = aws_subnet.public-subnet-02.id\rroute_table_id = aws_route_table.three-tier-web-rt.id\r}\rresource \u0026#34;aws_route_table_association\u0026#34; \u0026#34;three-tier-rta-03\u0026#34; {\rsubnet_id = aws_subnet.private-subnet-01.id\rroute_table_id = aws_route_table.three-tier-app-rt.id\r}\rresource \u0026#34;aws_route_table_association\u0026#34; \u0026#34;three-tier-rta-04\u0026#34; {\rsubnet_id = aws_subnet.private-subnet-02.id\rroute_table_id = aws_route_table.three-tier-app-rt.id\r}\rresource \u0026#34;aws_route_table_association\u0026#34; \u0026#34;three-tier-rta-05\u0026#34; {\rsubnet_id = aws_subnet.private-subnet-03.id\rroute_table_id = aws_route_table.three-tier-app-rt.id\r}\rresource \u0026#34;aws_route_table_association\u0026#34; \u0026#34;three-tier-rta-06\u0026#34; {\rsubnet_id = aws_subnet.private-subnet-04.id\rroute_table_id = aws_route_table.three-tier-app-rt.id\r} "
 },
 {
-	"uri": "/3-accessibilitytoinstances/3.3-db-tier/",
+	"uri": "//localhost:1313/3-accessibilitytoinstances/3.3-db-tier/",
 	"title": "For Database tier",
 	"tags": [],
 	"description": "",
 	"content": "Here\u0026rsquo;s an architecture:\nCreate new file called database.tf and insert configuration below:\n# ASG for web tier\r#### RDS ####\rresource \u0026#34;aws_db_subnet_group\u0026#34; \u0026#34;three-tier-db-sub-grp\u0026#34; {\rname = \u0026#34;three-tier-db-sub-grp\u0026#34;\rsubnet_ids = [\u0026#34;${aws_subnet.three-tier-pvt-sub-3.id}\u0026#34;,\u0026#34;${aws_subnet.three-tier-pvt-sub-4.id}\u0026#34;]\r}\rresource \u0026#34;aws_db_instance\u0026#34; \u0026#34;three-tier-db\u0026#34; {\rallocated_storage = 100\rstorage_type = \u0026#34;gp3\u0026#34;\rengine = \u0026#34;mysql\u0026#34;\rengine_version = \u0026#34;8.0\u0026#34;\rinstance_class = \u0026#34;db.t2.micro\u0026#34;\ridentifier = \u0026#34;three-tier-db\u0026#34;\rusername = \u0026#34;admin\u0026#34;\rpassword = \u0026#34;23vS5TdDW8*o\u0026#34;\rparameter_group_name = \u0026#34;default.mysql8.0\u0026#34;\rdb_subnet_group_name = aws_db_subnet_group.three-tier-db-sub-grp.name\rvpc_security_group_ids = [\u0026#34;${aws_security_group.three-tier-db-sg.id}\u0026#34;]\rmulti_az = true\rskip_final_snapshot = true\rpublicly_accessible = false\rlifecycle {\rprevent_destroy = true\rignore_changes = all\r}\r} "
 },
 {
-	"uri": "/4-cleanup/",
+	"uri": "//localhost:1313/4-cleanup/",
 	"title": "Clean up resources",
 	"tags": [],
 	"description": "",
-	"content": "We will delete all resources which created before with command\nterraform destroy --auto-approve Command starting Completed "
+	"content": "We will delete all resources which created before with command\nterraform destroy --auto-approve Command starting Completed\n"
 },
 {
-	"uri": "/2-prerequiste/2.1-createec2/2.1.4-createsecgroup/",
+	"uri": "//localhost:1313/2-prerequiste/2.1-createec2/2.1.4-createsecgroup/",
 	"title": "Create security groups",
 	"tags": [],
 	"description": "",
 	"content": "Create security groups In this step, we will proceed to create the security groups for alb used for our architecture. As you can see, we will create 3 different security groups for 3 tiers of application.\nCreate security.tf and insert configuration below\n# Load balancer security group 1 - web\rresource \u0026#34;aws_security_group\u0026#34; \u0026#34;three-tier-alb-sg-1\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rdepends_on = [\raws_vpc.three-tier-vpc\r]\ringress {\rfrom_port = 0\rto_port = 0\rprotocol = \u0026#34;-1\u0026#34;\rcidr_blocks = [\u0026#34;0.0.0.0/0\u0026#34;]\r}\regress {\rfrom_port = 0\rto_port = 0\rprotocol = \u0026#34;-1\u0026#34;\rcidr_blocks = [\u0026#34;0.0.0.0/0\u0026#34;]\r}\rtags = {\rName = \u0026#34;three-tier-alb-sg-1\u0026#34;\r}\r}\r# Load balancer security group 2 - app resource \u0026#34;aws_security_group\u0026#34; \u0026#34;three-tier-alb-sg-2\u0026#34; {\rname = \u0026#34;three-tier-alb-sg-2\u0026#34;\rdescription = \u0026#34;load balancer security group for app tier\u0026#34;\rvpc_id = aws_vpc.three-tier-vpc.id\rdepends_on = [\raws_vpc.three-tier-vpc\r]\ringress {\rfrom_port = \u0026#34;80\u0026#34;\rto_port = \u0026#34;80\u0026#34;\rprotocol = \u0026#34;tcp\u0026#34;\rsecurity_groups = [aws_security_group.three-tier-alb-sg-1.id]\r}\rtags = {\rName = \u0026#34;three-tier-alb-sg-2\u0026#34;\r}\r}\r###########################################################################################\r# web tier auto scalling group - Security Group\rresource \u0026#34;aws_security_group\u0026#34; \u0026#34;three-tier-ec2-asg-sg\u0026#34; {\rvpc_id = aws_vpc.three-tier-vpc.id\rdepends_on = [\raws_vpc.three-tier-vpc\r]\ringress {\rfrom_port = \u0026#34;0\u0026#34;\rto_port = \u0026#34;0\u0026#34;\rprotocol = \u0026#34;-1\u0026#34;\r}\ringress {\rfrom_port = 80\rto_port = 80\rprotocol = \u0026#34;tcp\u0026#34;\rcidr_blocks = [\u0026#34;0.0.0.0/0\u0026#34;]\r}\ringress {\rfrom_port = 22\rto_port = 22\rprotocol = \u0026#34;tcp\u0026#34;\rcidr_blocks = [\u0026#34;0.0.0.0/0\u0026#34;]\r}\regress {\rfrom_port = 0\rto_port = 0\rprotocol = \u0026#34;-1\u0026#34;\rcidr_blocks = [\u0026#34;0.0.0.0/0\u0026#34;]\r}\rtags = {\rName = \u0026#34;three-tier-ec2-asg-sg\u0026#34;\r}\r}\r# app tier auto scalling group - Security Group\rresource \u0026#34;aws_security_group\u0026#34; \u0026#34;three-tier-ec2-asg-sg-app\u0026#34; {\rname = \u0026#34;three-tier-ec2-asg-sg-app\u0026#34;\rdescription = \u0026#34;Allow traffic from web tier\u0026#34;\rvpc_id = aws_vpc.three-tier-vpc.id\rdepends_on = [\raws_vpc.three-tier-vpc\r]\ringress {\rfrom_port = \u0026#34;-1\u0026#34;\rto_port = \u0026#34;-1\u0026#34;\rprotocol = \u0026#34;icmp\u0026#34;\rsecurity_groups = [aws_security_group.three-tier-ec2-asg-sg.id]\r}\ringress {\rfrom_port = \u0026#34;80\u0026#34;\rto_port = \u0026#34;80\u0026#34;\rprotocol = \u0026#34;tcp\u0026#34;\rsecurity_groups = [aws_security_group.three-tier-ec2-asg-sg.id]\r}\ringress {\rfrom_port = \u0026#34;22\u0026#34;\rto_port = \u0026#34;22\u0026#34;\rprotocol = \u0026#34;tcp\u0026#34;\rsecurity_groups = [aws_security_group.three-tier-ec2-asg-sg.id]\r}\regress {\rfrom_port = \u0026#34;0\u0026#34;\rto_port = \u0026#34;0\u0026#34;\rprotocol = \u0026#34;-1\u0026#34;\rcidr_blocks = [\u0026#34;0.0.0.0/0\u0026#34;]\r}\rtags = {\rName = \u0026#34;three-tier-ec2-asg-sg-app\u0026#34;\r}\r}\r# Database tier security group\rresource \u0026#34;aws_security_group\u0026#34; \u0026#34;three-tier-db-sg\u0026#34; {\rname = \u0026#34;three-tier-db-sg\u0026#34;\rdescription = \u0026#34;Allow traffic from app tier\u0026#34;\rvpc_id = aws_vpc.three-tier-vpc.id\ringress {\rfrom_port = 3306\rto_port = 3306\rprotocol = \u0026#34;tcp\u0026#34;\rcidr_blocks = [\u0026#34;10.0.3.0/24\u0026#34;, \u0026#34;10.0.4.0/24\u0026#34;]\rdescription = \u0026#34;allow ssh from app tier\u0026#34;\r}\ringress {\rfrom_port = 22\rto_port = 22\rprotocol = \u0026#34;tcp\u0026#34;\rsecurity_groups = [aws_security_group.three-tier-ec2-asg-sg-app.id]\rcidr_blocks = [\u0026#34;10.0.0.0/16\u0026#34;]\r}\regress {\rfrom_port = 0\rto_port = 0\rprotocol = \u0026#34;-1\u0026#34;\rcidr_blocks = [\u0026#34;0.0.0.0/0\u0026#34;]\r}\r} Now, let opn AWS Console and check the resources:\nVPC, NAT Gateway, IGW and Route tables "
 },
 {
-	"uri": "/3-accessibilitytoinstances/3.4-execute/",
+	"uri": "//localhost:1313/3-accessibilitytoinstances/3.4-execute/",
 	"title": "Execute Terraform commands",
 	"tags": [],
 	"description": "",
 	"content": "Using Terminal and let\u0026rsquo;s excuting these command lines:\nterraform plan\rterraform apply EC2 (App \u0026amp; Web tier) RDS "
 },
 {
-	"uri": "/2-prerequiste/2.1-createec2/2.1.5-execute/",
+	"uri": "//localhost:1313/2-prerequiste/2.1-createec2/2.1.5-execute/",
 	"title": "Execute Terraform to create VPC",
 	"tags": [],
 	"description": "",
 	"content": "Provision AWS Infrastructure with Terraform Using Terminal and let\u0026rsquo;s excuting these command lines:\nterraform init\rterraform plan\rterraform apply VPC, Subnets, NAT Gateway and Route Tables Security Groups "
 },
 {
-	"uri": "/categories/",
+	"uri": "//localhost:1313/categories/",
 	"title": "Categories",
 	"tags": [],
 	"description": "",
 	"content": ""
 },
 {
-	"uri": "/tags/",
+	"uri": "//localhost:1313/tags/",
 	"title": "Tags",
 	"tags": [],
 	"description": "",

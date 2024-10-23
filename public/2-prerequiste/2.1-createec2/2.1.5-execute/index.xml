@@ -2,10 +2,10 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Execute Terraform to create VPC on AWS Workshop 01</title>
-    <link>/2-prerequiste/2.1-createec2/2.1.5-execute/</link>
+    <link>//localhost:1313/2-prerequiste/2.1-createec2/2.1.5-execute/</link>
     <description>Recent content in Execute Terraform to create VPC on AWS Workshop 01</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <atom:link href="/2-prerequiste/2.1-createec2/2.1.5-execute/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="//localhost:1313/2-prerequiste/2.1-createec2/2.1.5-execute/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>

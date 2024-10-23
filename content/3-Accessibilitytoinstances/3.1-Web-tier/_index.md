@@ -8,7 +8,7 @@ pre : " <b> 3.1  </b> "
 
 The Web Tier, also known as the ‘Presentation’ tier, is the environment where our application will be delivered for users to interact with. Here's an architecture:
 
-![Web Tier](/images/3.configure/003-webtier.png)
+![Web tier](static/images/3.configure/webtier.png)
 
 
 Create new file called **instance.tf** and insert configuration below:

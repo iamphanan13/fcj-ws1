@@ -15,4 +15,5 @@ Command starting
 ![Destroy](/images/4.clean/007-destroy1.png)
 
 Completed
-![alt text](image.png)
+
+![Completed](images/4.clean/008-completed.png)
