@@ -7,7 +7,7 @@ pre : " <b> 3.3 </b> "
 ---
 Here's an architecture:
 
-![Web Tier](/images/3.configure/005-rds.png)
+![DB Tier](/images/3.configure/005-rds.png)
 
 
 Create new file called **database.tf** and insert configuration below:
