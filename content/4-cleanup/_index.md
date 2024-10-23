@@ -16,4 +16,4 @@ Command starting
 
 Completed
 
-![Completed](images/4.clean/008-completed.png)
+![Completed](/images/4.clean/008-completed.png)
