@@ -9,7 +9,7 @@ pre : " <b> 3.2 </b> "
 
 The Application Tier is where the core functionality of our application app resides, handling tasks such as processing requests and data storage. To ensure the reliability and scalability of our application, we will implement a similar architecture as the Web Tier, but with some additional components.
 
-![Web Tier](/images/3.configure/004-apptier.png)
+![App Tier](/images/3.configure/004-apptier.png)
 
 
 open **instance.tf** and insert configuration below:
